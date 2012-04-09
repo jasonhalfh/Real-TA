@@ -2,7 +2,7 @@
 
 
 #define IS_PTR_ERR(ptr, ctx) if(ptr == NULL) \
-	{ printf(ctx); return NULL}
+	{ printf(ctx); return NULL; }
 
 
 struct ata_conf_s *ata_conf_init()
@@ -23,7 +23,9 @@ struct ata_conf_s *ata_conf_init()
 	IS_PTR_ERR (fp, "Open conf file failed\n");
 	
 	i = 0;
-	while (fscanf(fp, "%s\t%s", (keyval+i).key, (keyval+i).val) != EOF && i < MAX_CONFIG) {
+	while (fscanf(fp, "%s\t%s", (keyval+i)->key, (keyval+i)->val) != EOF 
+	       && i < MAX_CONFIG) {
+	
 		i ++;
 	}
 	
@@ -47,6 +49,7 @@ int ata_modules_init(struct ata_module_s **m)
 
 void ata_modules_clean(struct ata_module_s **m)
 {
+	int i;
 	for (i = 0; m[i]; i++) {
 		m[i]->exit_module;
 	}		
@@ -60,23 +63,28 @@ void ata_conf_clean(struct ata_conf_s *conf)
 	}
 }
 
-struct list_head *module_flow_init(struct ata_conf_s *conf,
-				   struct ata_module_s **m, int nr)
+
+struct ata_module_s *find_module_by_kv(struct ata_keyval_s *kv, struct ata_module_s **m)
+{
+	
+}
+
+
+int module_flow_init(struct ata_conf_s *conf,
+				   struct ata_module_s **m, int nr,
+				   struct list_head *list)
 {
 	int i;
-	struct ata_keyval_s *kv = conf->conf_keyval;
-	
-	LIST_HEAD(process_flow);
-	
+	struct ata_keyval_s *kv = conf->conf_keyval;	
 	
 	for (i = 0; i < PROCESS_STEPS; i++) {
-		list_add(find_module_by_kv(kv+i , m)->flow_next,
-			 process_flow);	
+		list_add(& find_module_by_kv(kv+i , m)->flow_next,
+			 list);	
 	}
 	
 	//list_add(m[nr], process_flow);
 	
-	return process_flow;	
+	return 0;
 }
 
 int start(struct ata_conf_s *conf, struct list_head *flow)
@@ -84,12 +92,19 @@ int start(struct ata_conf_s *conf, struct list_head *flow)
 	int i;
 	struct list_head *pos;
 	struct ata_module_s *tmp;
-	list_for_each_entry(tmp, pos, flow) {
+	struct ata_module_s *head;
+	
+	//head = list_entry(flow->next, struct ata_module_s, flow_next);
+	
+	list_for_each_entry(tmp, flow->next, flow_next) {
 		tmp->handle;
 	}
 
 	return 0;
 }
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -97,8 +112,8 @@ int main(int argc, char *argv[])
 	struct ata_log_s *log;
 	struct ata_conf_s *conf;
 	struct ata_module_flow_s *module_flow;
-	struct list_head *process;
 	int module_nr;
+	LIST_HEAD(process_flow);
 
 	conf = ata_conf_init();	
 
@@ -108,9 +123,9 @@ int main(int argc, char *argv[])
 	module_nr = ata_modules_init(ata_modules);
 	
 		
-	process = module_flow_init(conf, ata_modules, module_nr);
+	module_flow_init(conf, ata_modules, module_nr, &process_flow);
 	
-	start(conf, process);
+	start(conf, &process_flow);
 
 	ata_conf_clean(conf);
 
