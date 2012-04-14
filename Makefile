@@ -1,4 +1,9 @@
-objs=ata.c  ata_modules.c
+objs=ata.c  ata_modules.c ata_conf_module.c ata_log_module.c \
+	./modules/import/ata_import_cab_module.c \
+	./modules/filter/ata_filter_gpserr_module.c \
+	./modules/analyse/ata_analyse_conncluster_module.c
+
+
 #m-objs=./modules/...
 m-objs=
 
