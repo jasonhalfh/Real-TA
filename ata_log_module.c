@@ -5,6 +5,7 @@
 
 
 struct ata_module_s ata_log_module = {
+	.name = "log",
         .type = 0,
         .version = 0,
         .commands = NULL,

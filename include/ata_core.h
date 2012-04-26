@@ -7,7 +7,7 @@
 #include <string.h>
 #include <list.h>
 #include <math.h>
-
+#include <dirent.h>
 
 
 #include <ata.h>
